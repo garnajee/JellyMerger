@@ -1,0 +1,11 @@
+services:
+  jellymerger:
+    image: ghcr.io/garnajee/jellymerger:latest
+    container_name: jellymerger
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - JELLYFIN_URL=http://192.168.1.XX:8096
+      - JELLYFIN_API_KEY=your_api_key
+      # - JELLYFIN_USER_ID=optionnal

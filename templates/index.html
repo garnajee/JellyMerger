@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JellyMerger</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .list-group-item-action:hover { cursor: pointer; background-color: #f8f9fa; }
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-light" x-data="app()">
+
+<div class="container py-5" style="max-width: 900px;">
+    <div class="text-center mb-5">
+        <h1 class="display-6 fw-bold text-primary">JellyMerger</h1>
+        <p class="text-muted">Auto detect multiple versions of media.</p>
+    </div>
+
+    <!-- search -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <label class="form-label fw-bold">Search a serie</label>
+            <div class="position-relative">
+                <input type="text" class="form-control form-control-lg" 
+                       placeholder="Ex: The Witcher..." 
+                       x-model="searchQuery" 
+                       @input.debounce.300ms="performSearch()">
+                
+                <div class="list-group position-absolute w-100 mt-1 shadow" style="z-index: 1000;" x-show="searchResults.length > 0" x-cloak>
+                    <template x-for="serie in searchResults" :key="serie.Id">
+                        <a class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                           @click="selectSeries(serie)">
+                            <span x-text="serie.Name"></span>
+                            <span class="badge bg-secondary rounded-pill" x-text="serie.ProductionYear || ''"></span>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- loading -->
+    <div class="text-center py-5" x-show="isLoading" x-cloak>
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Recursive scan in progress...</p>
+    </div>
+
+    <!-- results -->
+    <div x-show="selectedSeries && !isLoading" x-cloak>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0">Results for <span class="text-primary" x-text="selectedSeries?.Name"></span></h4>
+            <span class="badge bg-warning text-dark fs-6" x-show="candidates.length > 0">
+                <span x-text="candidates.length"></span> episodes to process
+            </span>
+        </div>
+
+        <!-- no duplicate -->
+        <div x-show="candidates.length === 0 && hasAnalyzed" class="alert alert-success text-center">
+            ✅ No degrouped episodes found! Everything is clean.
+        </div>
+
+        <!-- list of duplicates -->
+        <div x-show="candidates.length > 0">
+            <div class="d-grid gap-3">
+                <template x-for="group in candidates" :key="group.label">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning bg-opacity-10 fw-bold d-flex justify-content-between">
+                            <span x-text="group.label"></span>
+                            <span class="badge bg-white text-dark border"><span x-text="group.files.length"></span> files</span>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <template x-for="file in group.files">
+                                <li class="list-group-item d-flex align-items-center justify-content-between">
+                                    <div class="text-truncate me-2">
+                                        <small x-text="file.name"></small>
+                                    </div>
+                                    <span class="badge" 
+                                          :class="file.quality.includes('4K') ? 'bg-danger' : 'bg-info'"
+                                          x-text="file.quality"></span>
+                                </li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+            </div>
+
+            <!-- action -->
+            <div class="card mt-4 border-primary shadow-sm sticky-bottom">
+                <div class="card-body text-center">
+                    <button class="btn btn-primary btn-lg w-100" 
+                            @click="mergeAll()"
+                            :disabled="isMerging">
+                        <span x-show="!isMerging">⚡ Merge these <span x-text="candidates.length"></span> groups</span>
+                        <span x-show="isMerging"> Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function app() {
+        return {
+            searchQuery: '',
+            searchResults: [],
+            selectedSeries: null,
+            candidates: [],
+            isLoading: false,
+            hasAnalyzed: false,
+            isMerging: false,
+
+            async performSearch() {
+                if (this.searchQuery.length < 2) {
+                    this.searchResults = [];
+                    return;
+                }
+                const res = await fetch(`/api/search?q=${this.searchQuery}`);
+                this.searchResults = await res.json();
+            },
+
+            async selectSeries(serie) {
+                this.selectedSeries = serie;
+                this.searchResults = [];
+                this.searchQuery = serie.Name;
+                this.analyzeSeries(serie.Id);
+            },
+
+            async analyzeSeries(id) {
+                this.isLoading = true;
+                this.hasAnalyzed = false;
+                this.candidates = [];
+                try {
+                    const res = await fetch(`/api/analyze/${id}`);
+                    const data = await res.json();
+                    this.candidates = data.results;
+                    this.hasAnalyzed = true;
+                } catch (e) {
+                    alert("Error analyze");
+                    console.error(e);
+                } finally {
+                    this.isLoading = false;
+                }
+            },
+
+            async mergeAll() {
+                if (!confirm("Confirm merge?")) return;
+                this.isMerging = true;
+                try {
+                    const res = await fetch('/api/merge', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ groups: this.candidates })
+                    });
+                    const result = await res.json();
+                    
+                    // We restart the analysis to refresh the view
+                    await this.analyzeSeries(this.selectedSeries.Id);
+                    
+                    setTimeout(() => alert(`Merge complete!\nSuccess: ${result.success}\nErrors: ${result.errors}`), 200);
+
+                } catch (e) {
+                    alert("Error during merge.");
+                } finally {
+                    this.isMerging = false;
+                }
+            }
+        }
+    }
+</script>
+</body>
+</html>
