@@ -2,7 +2,7 @@
 
   <img src="https://private-user-images.githubusercontent.com/62147746/522686461-030529fd-3a27-42e0-bfe3-e0fb377a265e.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjQ4ODY0NzYsIm5iZiI6MTc2NDg4NjE3NiwicGF0aCI6Ii82MjE0Nzc0Ni81MjI2ODY0NjEtMDMwNTI5ZmQtM2EyNy00MmUwLWJmZTMtZTBmYjM3N2EyNjVlLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTEyMDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUxMjA0VDIyMDkzNlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWEyYTJjZmU2ZWI5OGRmMmM0MmUzNDZlMDQ5Y2VkYWE2NDUxZTQwOTU3YWEzMjdjMGYwYzk0NTliYzcyYzdkNDgmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.KZjV43qEOQPvO6n0X_BbYD-tKVnZAes6uwijaWBhops" alt="JellyMerger Logo" width="200">
 
-[![license MIT badge](https://img.shields.io/github/license/garnajee/jellymerger)](https://opensource.org/licenses/MIT)
+[![license MIT badge](https://img.shields.io/github/license/garnajee/JellyMerger)](https://opensource.org/licenses/MIT)
 ![docker badge](https://img.shields.io/badge/docker-image-blue?logo=docker)
 ![ci cd badge](https://github.com/garnajee/jellymerger/actions/workflows/docker-publish.yml/badge.svg)
 
