@@ -6,11 +6,10 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 COPY pyproject.toml .
+COPY main.py .
+COPY templates/ templates/
 
 RUN pip install --no-cache-dir .
-
-COPY templates/ templates/
-COPY main.py .
 
 EXPOSE 8000
 
